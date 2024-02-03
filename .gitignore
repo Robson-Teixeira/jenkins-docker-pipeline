@@ -47,3 +47,6 @@ jobs/**/*workspace
 
 # As a result, only Jenkins settings and job config.xml files in JENKINS_HOME
 # will be tracked by git.
+
+.vagrant/
+*.log
