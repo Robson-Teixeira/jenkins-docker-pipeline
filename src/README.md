@@ -61,3 +61,27 @@
 
 ### Ambiente de build
 - Delete workspace before build starts
+
+### Configurar aplicação
+- `vi .env` cria .env
+- `sudo pip3 install virtualenv nose coverage nosexcover pylint` instala venv e dependências do Python
+
+### Criando e ativando o venv (dev)
+- `virtualenv --always-copy  venv-django-todolist` cria _virtualenv_ para isolar pacotes da aplicação
+- `source venv-django-todolist/bin/activate` ativa _virtualenv_
+- `pip install -r requirements.txt` instala dependências do `requirements.txt`
+
+### Fazendo a migração inicial dos dados (específico da aplicação Django)
+- `python manage.py makemigrations` cria migrações do banco baseado nos modelos
+- `python manage.py migrate` migra o banco
+
+### Criando o superuser para acessar a app (específico da aplicação Django)
+- `python manage.py createsuperuser` cria super usuário (root)
+
+> Repetir o processo de migração para o ambiente de produção (alterar apontamentos no .env)
+
+### Verificar o ip do servidor
+- `ip addr`
+
+### Rodando a app
+- `python manage.py runserver 0:8000` starta app em http://192.168.33.10:8000`
