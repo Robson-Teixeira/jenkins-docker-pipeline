@@ -85,3 +85,16 @@
 
 ### Rodando a app
 - `python manage.py runserver 0:8000` starta app em http://192.168.33.10:8000`
+
+### Expor o daemon (acesso remoto) do Docker
+- `sudo mkdir -p /etc/systemd/system/docker.service.d/` cria diretório para configuração
+- `sudo vi /etc/systemd/system/docker.service.d/override.conf` cria arquivo de configuração para o seguinte conteúdo:
+
+```
+[Service]
+ExecStart=
+ExecStart=/usr/bin/dockerd -H fd:// -H tcp://0.0.0.0:2376
+```
+
+- `sudo systemctl daemon-reload` recarrega _daemon_ Docker
+- `sudo systemctl restart docker.service` reinicia serviço Docker
