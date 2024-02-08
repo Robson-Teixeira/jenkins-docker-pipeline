@@ -98,3 +98,24 @@ ExecStart=/usr/bin/dockerd -H fd:// -H tcp://0.0.0.0:2376
 
 - `sudo systemctl daemon-reload` recarrega _daemon_ Docker
 - `sudo systemctl restart docker.service` reinicia serviço Docker
+
+### Instalando os plugins no Jenkins
+- Gerenciar Jenkins -> Gerenciar Plugins -> Disponíveis
+- Pesquisar por `docker`
+- Instalar sem reiniciar -> Depois reiniciar o Jenkins
+- Gerenciar Jenkins -> Configurar o sistema -> Nuvem
+    - Name: docker
+    - URI: tcp://127.0.0.1:2376 (local)
+    - Enabled
+
+### Editando job
+- Build step 1: Executar Shell
+```
+# Validando a sintaxe do Dockerfile
+docker run --rm -i hadolint/hadolint < Dockerfile
+```
+
+- Build step 2: Build/Publish Docker Image
+    - Directory for Dockerfile: ./
+    - Cloud: docker
+    - Image: robsonteixeira/django-todolist
