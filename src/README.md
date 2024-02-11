@@ -115,7 +115,7 @@ ExecStart=/usr/bin/dockerd -H fd:// -H tcp://0.0.0.0:2376
 docker run --rm -i hadolint/hadolint < Dockerfile
 ```
 
-- Build step 2: Build/Publish Docker Image
+- Build step 2: Build / Publish Docker Image
     - Directory for Dockerfile: ./
     - Cloud: docker
     - Image: robsonteixeira/django-todolist
@@ -162,8 +162,8 @@ DB_PORT = "3306"
 
 ### Editando job
 - Adicionar passo no ambiente de build: Provide Configuration Files
-- File: .env-dev
-- Target: .env
+    - File: .env-dev
+    - Target: .env
 
 - Build step 3: Executar Shell
 
@@ -183,4 +183,27 @@ docker rm -f todo-list-teste
 if [ $exit_code -ne 0 ]; then
     exit 1
 fi
+```
+
+### Instalando o plugin Parameterized Trigger no Jenkins
+
+- Gerenciar Jenkins -> Gerenciar Plugins -> Disponíveis
+- Pesquisar por `Parameterized Trigger`
+
+### Editando job
+- Geral: Este build é parametrizado (2 parâmetros de string)
+    - Nome: image
+    - Valor padrão: <seu-usuario-no-dockerhub>/django-todolist
+
+    - Nome: DOCKER_HOST
+    - Valor padrão: tcp://127.0.0.1:2376
+        >DOCKER_HOST visa garantir que o próximo job execute no mesmo servidor em que  primeiro job executou os builds
+
+- No build step: Build / Publish Docker Image
+    - Mudar o nome da imagem para: <seu-usuario-no-dockerhub>/django-todolist
+    - Marcar: Push Image e configurar **suas credenciais** no dockerhub (Add > Jenkins)
+
+- Mudar no job de teste a imagem para: ${image}
+```
+docker run -d -p 82:8000 -v /var/run/mysqld/mysqld.sock:/var/run/mysqld/mysqld.sock -v /var/lib/jenkins/workspace/jenkins-todo-list-principal/.env:/usr/src/app/src/.env --name=todo-list-teste ${image}
 ```
