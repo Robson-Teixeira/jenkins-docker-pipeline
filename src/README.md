@@ -207,3 +207,27 @@ fi
 ```
 docker run -d -p 82:8000 -v /var/run/mysqld/mysqld.sock:/var/run/mysqld/mysqld.sock -v /var/lib/jenkins/workspace/jenkins-todo-list-principal/.env:/usr/src/app/src/.env --name=todo-list-teste ${image}
 ```
+
+### Criando app no [Slack](https://slack.com/)
+- Slack > Workspace > Automações > Criar e encontrar fluxos de trabalho e apps
+- Pesquisar por `Jenkins CI` e adicionar ao canal desejado
+
+- URL básico/Subdomínio da equipe: <Url do Jenkins app no seu canal do Slack>
+- Token de integração/ID da credencial do token de integração: <Token do Jenkins app no seu canal do Slack>
+
+### Instalando o plugin Slack Notification no Jenkins
+
+- Gerenciar Jenkins -> Gerenciar Plugins -> Disponíveis
+- Pesquisar por `slack notification`
+
+### Configurar o Slack Notification
+- Gerenciar Jenkins > Configuraçao o sistema > Global Slack Notifier Settings
+    - Slack compatible app URL (optional)/Workspace: <Url do Jenkins app no seu canal do Slack>
+    - Integration Token Credential ID/Credential: ADD > Jenkins > Secret Text
+        - Secret: <Token do Jenkins app no seu canal do Slack>
+        - ID: slack-token
+    - Channel or Slack ID: `#pipeline-todolist`
+
+>As notificações vão funcionar da seguinte maneira:
+Job: todo-list-desenvolvimento será feito pelo Jenkinsfile
+Job: todo-list-producao: Ações de pós-build > Slack Notifications: Notify Success e Notify Every Failure
