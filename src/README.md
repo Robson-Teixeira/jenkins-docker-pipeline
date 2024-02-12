@@ -231,3 +231,87 @@ docker run -d -p 82:8000 -v /var/run/mysqld/mysqld.sock:/var/run/mysqld/mysqld.s
 >As notificações vão funcionar da seguinte maneira:
 Job: todo-list-desenvolvimento será feito pelo Jenkinsfile
 Job: todo-list-producao: Ações de pós-build > Slack Notifications: Notify Success e Notify Every Failure
+
+### Criar job publicação todo-list-desenvolvimento
+- Tipo: Pipeline
+- Geral: Este build é parametrizado (2 parâmetros de string)
+  - Nome: image
+  - Valor padrão: Vazio, pois o valor será recebido do job anterior.
+  
+  - Nome: DOCKER_HOST
+  - Valor padrão: tcp://127.0.0.1:2376
+
+- Pipeline > Pipeline script:
+
+Código de teste:
+
+```
+pipeline {
+
+    agent any    
+
+    stages {
+        stage('Oi Mundo Pipeline como Código') {
+            steps {
+                sh 'echo "Oi Mundo"'
+            }
+        }
+    }
+}
+```
+
+Código definitivo:
+
+```
+pipeline {
+
+    environment {
+        dockerImage = "${image}"
+    }
+
+    agent any
+
+    stages {
+        stage('Carregando o ENV de desenvolvimento') {
+            steps {
+                configFileProvider([configFile(fileId: '<id do seu arquivo de desenvolvimento>', variable: 'env')]) {
+                    sh 'cat $env > .env'
+                }
+            }
+        }
+
+        stage('Derrubando o container antigo') {
+            steps {
+                script {
+                    try {
+                        sh 'docker rm -f django-todolist-dev'
+                    } catch (Exception e) {
+                        sh "echo $e"
+                    }
+                }
+            }
+        }        
+
+        stage('Subindo o container novo') {
+            steps {
+                script {
+                    try {
+                        sh 'docker run -d -p 81:8000 -v /var/run/mysqld/mysqld.sock:/var/run/mysqld/mysqld.sock -v /var/lib/jenkins/workspace/jenkins-todo-list-desenvolvimento/.env:/usr/src/app/src/.env --name=django-todolist-dev ' + dockerImage + ':latest'
+                    } catch (Exception e) {
+                        slackSend (color: 'error', message: "[ FALHA ] Não foi possível subir o container - ${BUILD_URL} em ${currentBuild.duration}s", tokenCredentialId: 'slack-token')
+                        sh "echo $e"
+                        currentBuild.result = 'ABORTED'
+                        error('Erro')
+                    }
+                }
+            }
+        }
+
+        stage('Notificando o usuário') {
+            steps {
+                slackSend (color: 'good', message: '[ Sucesso ] O novo build esta disponivel em: http://192.168.33.10:81/ ', tokenCredentialId: 'slack-token')
+            }
+        }
+    }
+}
+```
