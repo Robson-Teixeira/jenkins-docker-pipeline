@@ -161,7 +161,7 @@ DB_PORT = "3306"
 ```
 
 ### Editando job
-- Adicionar passo no ambiente de build: Provide Configuration Files
+- Build Environment: Provide Configuration Files
     - File: .env-dev
     - Target: .env
 
@@ -315,3 +315,29 @@ pipeline {
     }
 }
 ```
+
+### Criar job publicação todo-list-producao
+- Tipo: Freestyle project
+- Geral: Este build é parametrizado (2 parâmetros de string)
+  - Nome: image
+  - Valor padrão: Vazio, pois o valor será recebido do job anterior.
+  
+  - Nome: DOCKER_HOST
+  - Valor padrão: tcp://127.0.0.1:2376
+
+- Build Environment: Provide Configuration Files
+    - File: .env-prod
+    - Target: .env
+
+- Build step 1: Executar Shell
+```
+#!/bin/sh
+{
+    docker run -d -p 80:8000 -v /var/run/mysqld/mysqld.sock:/var/run/mysqld/mysqld.sock -v /var/lib/jenkins/workspace/todo-list-producao/.env:/usr/src/app/src/.env --name=django-todolist-prod $image:latest
+} || { # catch
+    docker rm -f django-todolist-prod
+    docker run -d -p 80:8000 -v /var/run/mysqld/mysqld.sock:/var/run/mysqld/mysqld.sock -v /var/lib/jenkins/workspace/todo-list-producao/.env:/usr/src/app/src/.env --name=django-todolist-prod $image:latest
+}
+```
+
+- Post-build Actions > Slack Notifications: `Notify Success` e `Notify Every Failure`
