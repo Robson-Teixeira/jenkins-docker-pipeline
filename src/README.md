@@ -341,3 +341,42 @@ pipeline {
 ```
 
 - Post-build Actions > Slack Notifications: `Notify Success` e `Notify Every Failure`
+
+### Editando jobs
+
+- Job: jenkins-todo-list-principal
+    - Post-build Actions > Trigger parameterized buld on other projects
+        - Projects to build: todo-list-desenvolvimento
+        - Add Parameters > Predefined parameters
+            - Parameters: image=${image}
+
+- Job: todo-list-desenvolvimento
+´´´
+// Código omitido
+
+stage ('Fazer o deploy em producao?') {
+    steps {
+        script {
+            slackSend (color: 'warning', message: "Para aplicar a mudança em produção, acesse [Janela de 10 minutos]: ${JOB_URL}", tokenCredentialId: 'slack-token')
+            timeout(time: 10, unit: 'MINUTES') {
+                input(id: "deployGate", message: "Deploy em produção?", ok: 'Deploy')
+            }
+        }
+    }
+}
+
+stage (deploy) {
+    steps {
+        script {
+            try {
+                build job: 'todo-list-producao', parameters: [[$class: 'StringParameterValue', name: 'image', value: dockerImage]]
+            } catch (Exception e) {
+                slackSend (color: 'error', message: "[ FALHA ] Não foi possivel subir o container em producao - ${BUILD_URL}", tokenCredentialId: 'slack-token')
+                sh "echo $e"
+                currentBuild.result = 'ABORTED'
+                error('Erro')
+            }
+        }
+    }
+}
+´´´
