@@ -1,11 +1,9 @@
 ## Ferramentas
-
 - [VirtualBox](https://www.virtualbox.org/)
 - [Vagrant](http://vagrantup.com)
 - [Cmder](https://cmder.app/)
 
 ## Comandos
-
 - `vagrant plugin install vagrant-disksize` permite aumento de disco no Vagrantfile
 - `vagrant up` lê Vagrantfile e provisiona máquina
 - `vagrant ssh` loga na máquina
@@ -22,7 +20,6 @@
 - `vagrant reload` recarrega Vagrant (ler alterações do Vagrantfile, por exemplo)
 
 ### Configuração do git e versionamento do código
-
 - `ssh-keygen -t rsa -b 4096 -C "<seu-usuario>@gmail.com"` cria chave SSH localmente
 - `git config --global user.name "<seu-usuario>"` configurar usuário Git
 - `git config --global user.email <seu-usuario>@<seu-providor>` configurar e-mail Git
@@ -41,13 +38,12 @@
 - `git push -u origin master`
 
 ### Configurar chave privada criada no ambiente da VM no Jenkins
-
 - `Credentials -> Jenkins -> Global Credentials -> Add Crendentials -> SSH Username with private key [ github-ssh ]` caminho para criar chave SSH no Jenkins
 - `cat ~/.ssh/id_rsa` acessar conteúdo da chave privada criada e inserir valor na chave SSH a ser criada no Jenkins
 
 ### Criar job monitoramento jenkins-todo-list-principal
-- Tipo: Freestyle project (esse job vai fazer o build do projeto e registrar a imagem no repositório.)
-- Source Code Management: Git
+- Tipo: `Freestyle project` (esse job vai fazer o build do projeto e registrar a imagem no repositório.)
+- Source Code Management: `Git`
     - Repository URL: `git@github.com:<seu-usuario>/jenkins-todo-list.git` [SSH]
     - Credentials: `git (github-ssh)`
     - Branch: `master`
@@ -55,11 +51,11 @@
         > Pode ser necessário configurar o `Git Host Key Verification Configuration` em **Security** nas configurações do Jenkins
 
 - Build Triggers
-    - Pool SCM: * * * * *
+    - Pool SCM: `* * * * *`
 - Build Environment: Delete workspace before build starts
 
 ### Configurar aplicação
-- `vi .env` cria .env
+- `vi .env` cria `.env`
 - `sudo pip3 install virtualenv nose coverage nosexcover pylint` instala venv e dependências do Python
 
 ### Criando e ativando o venv (dev)
@@ -80,7 +76,7 @@
 - `ip addr`
 
 ### Rodando a app
-- `python manage.py runserver 0:8000` starta app em http://192.168.33.10:8000`
+- `python manage.py runserver 0:8000` starta app em `http://192.168.33.10:8000`
 
 ### Expor o daemon (acesso remoto) do Docker
 - `sudo mkdir -p /etc/systemd/system/docker.service.d/` cria diretório para configuração
@@ -100,21 +96,21 @@ ExecStart=/usr/bin/dockerd -H fd:// -H tcp://0.0.0.0:2376
 - Pesquisar por `docker`
 - Instalar sem reiniciar -> Depois reiniciar o Jenkins
 - Gerenciar Jenkins -> Configurar o sistema -> Nuvem
-    - Name: docker
-    - URI: tcp://127.0.0.1:2376 (local)
+    - Name: `docker`
+    - URI: `tcp://127.0.0.1:2376` (local)
     - Enabled
 
 ### Editando job
-- Build step 1: Executar Shell
+- Build step 1: Executar Shell:
 ```
 # Validando a sintaxe do Dockerfile
 docker run --rm -i hadolint/hadolint < Dockerfile
 ```
 
 - Build step 2: Build / Publish Docker Image
-    - Directory for Dockerfile: ./
-    - Cloud: docker
-    - Image: robsonteixeira/django-todolist
+    - Directory for Dockerfile: `./`
+    - Cloud: `docker`
+    - Image: `<seu-usuario-no-dockerhub>/django-todolist`
 
 ### Instalando o plugin Config File Provider no Jenkins
 - Gerenciar Jenkins -> Gerenciar Plugins -> Disponíveis
@@ -122,7 +118,7 @@ docker run --rm -i hadolint/hadolint < Dockerfile
 
 ### Configurar o Managed Files para Dev
 - Gerenciar Jenkins -> Gerenciar arquivos -> Adicione uma nova configuração -> Arquivo customizável
-- Name: .env-dev
+- Name: `.env-dev`
 - Content: 
 ```
 [config]
@@ -140,7 +136,7 @@ DB_PORT = "3306"
 
 ### Configurar o Managed Files para Prod
 - Gerenciar Jenkins -> Gerenciar arquivos -> Adicione uma nova configuração -> Arquivo customizável
-- Name: .env-prod
+- Name: `.env-prod`
 - Content: 
 ```
 [config]
@@ -158,16 +154,15 @@ DB_PORT = "3306"
 
 ### Editando job
 - Build Environment: Provide Configuration Files
-    - File: .env-dev
-    - Target: .env
+    - File: `.env-dev`
+    - Target: `.env`
 
-- Build step 3: Executar Shell
-
+- Build step 3: Executar Shell:
 ```
 #!/bin/sh
 
 # Subindo o container de teste
-docker run -d -p 82:8000 -v /var/run/mysqld/mysqld.sock:/var/run/mysqld/mysqld.sock -v /var/lib/jenkins/workspace/jenkins-todo-list-principal/.env:/usr/src/app/src/.env --name=todo-list-teste robsonteixeira/django-todolist
+docker run -d -p 82:8000 -v /var/run/mysqld/mysqld.sock:/var/run/mysqld/mysqld.sock -v /var/lib/jenkins/workspace/jenkins-todo-list-principal/.env:/usr/src/app/src/.env --name=todo-list-teste <seu-usuario-no-dockerhub>/django-todolist
 
 # Testando a imagem
 docker exec -i todo-list-teste python manage.py test --keep
@@ -182,24 +177,24 @@ fi
 ```
 
 ### Instalando o plugin Parameterized Trigger no Jenkins
-
 - Gerenciar Jenkins -> Gerenciar Plugins -> Disponíveis
 - Pesquisar por `Parameterized Trigger`
 
 ### Editando job
 - Geral: Este build é parametrizado (2 parâmetros de string)
-    - Nome: image
-    - Valor padrão: <seu-usuario-no-dockerhub>/django-todolist
+    - Nome: `image`
+    - Valor padrão: `<seu-usuario-no-dockerhub>/django-todolist`
 
-    - Nome: DOCKER_HOST
-    - Valor padrão: tcp://127.0.0.1:2376
+    - Nome: `DOCKER_HOST`
+    - Valor padrão: `tcp://127.0.0.1:2376`
+
         >DOCKER_HOST visa garantir que o próximo job execute no mesmo servidor em que  primeiro job executou os builds
 
 - No build step: Build / Publish Docker Image
-    - Mudar o nome da imagem para: <seu-usuario-no-dockerhub>/django-todolist
+    - Mudar o nome da imagem para: `<seu-usuario-no-dockerhub>/django-todolist`
     - Marcar: Push Image e configurar **suas credenciais** no dockerhub (Add > Jenkins)
 
-- Mudar no job de teste a imagem para: ${image}
+- Mudar no job de teste a imagem para: `${image}`:
 ```
 docker run -d -p 82:8000 -v /var/run/mysqld/mysqld.sock:/var/run/mysqld/mysqld.sock -v /var/lib/jenkins/workspace/jenkins-todo-list-principal/.env:/usr/src/app/src/.env --name=todo-list-teste ${image}
 ```
@@ -208,20 +203,19 @@ docker run -d -p 82:8000 -v /var/run/mysqld/mysqld.sock:/var/run/mysqld/mysqld.s
 - Slack > Workspace > Automações > Criar e encontrar fluxos de trabalho e apps
 - Pesquisar por `Jenkins CI` e adicionar ao canal desejado
 
-- URL básico/Subdomínio da equipe: <Url do Jenkins app no seu canal do Slack>
-- Token de integração/ID da credencial do token de integração: <Token do Jenkins app no seu canal do Slack>
+- URL básico/Subdomínio da equipe: `<Url do Jenkins app no seu canal do Slack>`
+- Token de integração/ID da credencial do token de integração: `<Token do Jenkins app no seu canal do Slack>`
 
 ### Instalando o plugin Slack Notification no Jenkins
-
 - Gerenciar Jenkins -> Gerenciar Plugins -> Disponíveis
 - Pesquisar por `slack notification`
 
 ### Configurar o Slack Notification
 - Gerenciar Jenkins > Configuraçao o sistema > Global Slack Notifier Settings
-    - Slack compatible app URL (optional)/Workspace: <Url do Jenkins app no seu canal do Slack>
+    - Slack compatible app URL (optional)/Workspace: `<Url do Jenkins app no seu canal do Slack>`
     - Integration Token Credential ID/Credential: ADD > Jenkins > Secret Text
-        - Secret: <Token do Jenkins app no seu canal do Slack>
-        - ID: slack-token
+        - Secret: `<Token do Jenkins app no seu canal do Slack>`
+        - ID: `slack-token`
     - Channel or Slack ID: `#pipeline-todolist`
 
 >As notificações vão funcionar da seguinte maneira:
@@ -229,18 +223,17 @@ Job: todo-list-desenvolvimento será feito pelo Jenkinsfile
 Job: todo-list-producao: Ações de pós-build > Slack Notifications: Notify Success e Notify Every Failure
 
 ### Criar job publicação todo-list-desenvolvimento
-- Tipo: Pipeline (esse job vai realizar a publicação do projeto no ambiente de desenvolvimento.)
+- Tipo: `Pipeline` (esse job vai realizar a publicação do projeto no ambiente de desenvolvimento.)
 - Geral: Este build é parametrizado (2 parâmetros de string)
-  - Nome: image
+  - Nome: `image`
   - Valor padrão: Vazio, pois o valor será recebido do job anterior.
   
-  - Nome: DOCKER_HOST
-  - Valor padrão: tcp://127.0.0.1:2376
+  - Nome: `DOCKER_HOST`
+  - Valor padrão: `tcp://127.0.0.1:2376`
 
 - Pipeline > Pipeline script:
 
 Código de teste:
-
 ```
 pipeline {
 
@@ -257,7 +250,6 @@ pipeline {
 ```
 
 Código definitivo:
-
 ```
 pipeline {
 
@@ -313,19 +305,19 @@ pipeline {
 ```
 
 ### Criar job publicação todo-list-producao
-- Tipo: Freestyle project (esse job vai realizar a publicação do projeto no ambiente de produção.)
+- Tipo: `Freestyle project` (esse job vai realizar a publicação do projeto no ambiente de produção.)
 - Geral: Este build é parametrizado (2 parâmetros de string)
-  - Nome: image
+  - Nome: `image`
   - Valor padrão: Vazio, pois o valor será recebido do job anterior.
   
-  - Nome: DOCKER_HOST
-  - Valor padrão: tcp://127.0.0.1:2376
+  - Nome: `DOCKER_HOST`
+  - Valor padrão: `tcp://127.0.0.1:2376`
 
 - Build Environment: Provide Configuration Files
-    - File: .env-prod
-    - Target: .env
+    - File: `.env-prod`
+    - Target: `.env`
 
-- Build step 1: Executar Shell
+- Build step 1: Executar Shell:
 ```
 #!/bin/sh
 {
@@ -339,15 +331,14 @@ pipeline {
 - Post-build Actions > Slack Notifications: `Notify Success` e `Notify Every Failure`
 
 ### Editando jobs
-
 - Job: jenkins-todo-list-principal
     - Post-build Actions > Trigger parameterized buld on other projects
-        - Projects to build: todo-list-desenvolvimento
+        - Projects to build: `todo-list-desenvolvimento`
         - Add Parameters > Predefined parameters
-            - Parameters: image=${image}
+            - Parameters: `image=${image}`
 
 - Job: todo-list-desenvolvimento
-´´´
+```
 // Código omitido
 
 stage ('Fazer o deploy em producao?') {
@@ -375,18 +366,18 @@ stage (deploy) {
         }
     }
 }
-´´´
+```
 
 ### Subindo container com Sonarqube
 - `docker run -d --name sonarqube -p 9000:9000 sonarqube:lts` (na máquina devops Vagrant)
 - Acessar http://192.168.33.10:9000
-    - Usuário: admin
-    - Senha: admin
-    - Name: jenkins-todolist
-        - Provide a token: jenkins-todolist e anotar o seu token
+    - Usuário: `admin`
+    - Senha: `admin`
+    - Name: `jenkins-todolist`
+        - Provide a token: `jenkins-todolist` e anotar o seu token
         - Run analysis on your project > Other (JS, Python, PHP, ...) > Linux > django-todo-list
 
-- Copie o shell script fornecido
+- Copie o shell script fornecido:
 ```
 sonar-scanner \
   -Dsonar.projectKey=jenkins-todolist \
@@ -395,15 +386,15 @@ sonar-scanner \
 ```
 
 ### Criar job coverage todo-list-sonarqube
-- Tipo: Freestyle project (esse job vai realizar a análise do projeto para identificar débitos técnicos, más práticas, erros de sintaxe e outras métricas.)
-- Source Code Management: Git
+- Tipo: `Freestyle project` (esse job vai realizar a análise do projeto para identificar débitos técnicos, más práticas, erros de sintaxe e outras métricas.)
+- Source Code Management: `Git`
     - Repository URL: `git@github.com:<seu-usuario>/jenkins-todo-list.git` [SSH]
     - Credentials: `git (github-ssh)`
     - Branch: `master`
 - Build Triggers
-    - Pool SCM: * * * * *
+    - Pool SCM: `* * * * *`
 - Build Environment: Delete workspace before build starts
-- Build step 1: Executar Shell
+- Build step 1: Executar Shell:
 ```
 #!/bin/bash
 # Baixando o Sonarqube
