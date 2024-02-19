@@ -45,22 +45,18 @@
 - `Credentials -> Jenkins -> Global Credentials -> Add Crendentials -> SSH Username with private key [ github-ssh ]` caminho para criar chave SSH no Jenkins
 - `cat ~/.ssh/id_rsa` acessar conteúdo da chave privada criada e inserir valor na chave SSH a ser criada no Jenkins
 
-### Criar job monitoramento repositório
-- `Novo job -> jenkins-todo-list-principal -> Freestyle project` Esse job vai fazer o build do projeto e registrar a imagem no repositório.
-
-### Gerenciamento de código fonte:
-- Git
+### Criar job monitoramento jenkins-todo-list-principal
+- Tipo: Freestyle project (esse job vai fazer o build do projeto e registrar a imagem no repositório.)
+- Source Code Management: Git
     - Repository URL: `git@github.com:<seu-usuario>/jenkins-todo-list.git` [SSH]
     - Credentials: `git (github-ssh)`
     - Branch: `master`
 
-> Pode ser necessário configurar o `Git Host Key Verification Configuration` em **Security** nas configurações do Jenkins
+        > Pode ser necessário configurar o `Git Host Key Verification Configuration` em **Security** nas configurações do Jenkins
 
-### Trigger de builds
-- Pool SCM: * * * * *
-
-### Ambiente de build
-- Delete workspace before build starts
+- Build Triggers
+    - Pool SCM: * * * * *
+- Build Environment: Delete workspace before build starts
 
 ### Configurar aplicação
 - `vi .env` cria .env
@@ -233,7 +229,7 @@ Job: todo-list-desenvolvimento será feito pelo Jenkinsfile
 Job: todo-list-producao: Ações de pós-build > Slack Notifications: Notify Success e Notify Every Failure
 
 ### Criar job publicação todo-list-desenvolvimento
-- Tipo: Pipeline
+- Tipo: Pipeline (esse job vai realizar a publicação do projeto no ambiente de desenvolvimento.)
 - Geral: Este build é parametrizado (2 parâmetros de string)
   - Nome: image
   - Valor padrão: Vazio, pois o valor será recebido do job anterior.
@@ -317,7 +313,7 @@ pipeline {
 ```
 
 ### Criar job publicação todo-list-producao
-- Tipo: Freestyle project
+- Tipo: Freestyle project (esse job vai realizar a publicação do projeto no ambiente de produção.)
 - Geral: Este build é parametrizado (2 parâmetros de string)
   - Nome: image
   - Valor padrão: Vazio, pois o valor será recebido do job anterior.
@@ -396,4 +392,30 @@ sonar-scanner \
   -Dsonar.projectKey=jenkins-todolist \
   -Dsonar.sources=. \
   -Dsonar.host.url=http://192.168.33.10:9000
+```
+
+### Criar job coverage todo-list-sonarqube
+- Tipo: Freestyle project (esse job vai realizar a análise do projeto para identificar débitos técnicos, más práticas, erros de sintaxe e outras métricas.)
+- Source Code Management: Git
+    - Repository URL: `git@github.com:<seu-usuario>/jenkins-todo-list.git` [SSH]
+    - Credentials: `git (github-ssh)`
+    - Branch: `master`
+- Build Triggers
+    - Pool SCM: * * * * *
+- Build Environment: Delete workspace before build starts
+- Build step 1: Executar Shell
+```
+#!/bin/bash
+# Baixando o Sonarqube
+wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.7.0.2747-linux.zip
+
+# Descompactando o scanner
+unzip sonar-scanner-cli-4.7.0.2747-linux.zip
+
+# Rodando o Scanner
+./sonar-scanner-4.7.0.2747-linux/bin/sonar-scanner   -X \
+  -Dsonar.projectKey=jenkins-todolist \
+  -Dsonar.sources=. \
+  -Dsonar.host.url=http://192.168.33.10:9000 \
+  -Dsonar.login=<token project>
 ```
